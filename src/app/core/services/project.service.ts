@@ -1,11 +1,12 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Project } from '../models/project.model';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-  private STORAGE_KEY = 'honeymoney_projects';
+  private apiService = inject(ApiService);
   
   // Initialize with a default project if empty
   private defaultProject: Project = {
@@ -22,57 +23,69 @@ export class ProjectService {
   activeProject = signal<Project | null>(null);
 
   constructor() {
-    this.loadFromStorage();
-    
-    // Auto-save effect
-    effect(() => {
-        this.saveToStorage(this.projectsSignal());
+    this.loadProjects();
+  }
+
+  private loadProjects() {
+    this.apiService.get<Project[]>('projects').subscribe({
+      next: (projects) => {
+        if (projects.length === 0) {
+          // If no projects exist, create the default one
+          this.addProject(this.defaultProject);
+        } else {
+          this.projectsSignal.set(projects);
+          if (projects.length > 0) {
+            this.activeProject.set(projects[0]);
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error loading projects:', error);
+        // Fallback to default project on error
+        this.projectsSignal.set([this.defaultProject]);
+        this.activeProject.set(this.defaultProject);
+      }
     });
   }
 
-  addProject(project: Omit<Project, 'id'>) {
-    const newProject: Project = {
-        ...project,
-        id: crypto.randomUUID()
+  addProject(project: Omit<Project, 'id'> | Project) {
+    const newProject: Project = 'id' in project ? project : {
+      ...project,
+      id: crypto.randomUUID()
     };
-    this.projectsSignal.update(projects => [...projects, newProject]);
+    
+    this.apiService.post<Project>('projects', newProject).subscribe({
+      next: (savedProject) => {
+        this.projectsSignal.update(projects => [...projects, savedProject]);
+      },
+      error: (error) => console.error('Error adding project:', error)
+    });
   }
 
   updateProject(id: string, updates: Partial<Omit<Project, 'id'>>) {
-    this.projectsSignal.update(projects => 
-        projects.map(p => p.id === id ? { ...p, ...updates } : p)
-    );
+    this.apiService.put<Project>(`projects/${id}`, updates).subscribe({
+      next: (updatedProject) => {
+        this.projectsSignal.update(projects => 
+          projects.map(p => p.id === id ? updatedProject : p)
+        );
+      },
+      error: (error) => console.error('Error updating project:', error)
+    });
   }
 
   deleteProject(id: string) {
     if (id === this.defaultProject.id) return; // Prevent deleting default
-    this.projectsSignal.update(projects => projects.filter(p => p.id !== id));
+    
+    this.apiService.delete(`projects/${id}`).subscribe({
+      next: () => {
+        this.projectsSignal.update(projects => projects.filter(p => p.id !== id));
+      },
+      error: (error) => console.error('Error deleting project:', error)
+    });
   }
 
   getProjectById(id: string): Project | undefined {
     return this.projectsSignal().find(p => p.id === id);
   }
-
-  private loadFromStorage() {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    if (data) {
-        try {
-            this.projectsSignal.set(JSON.parse(data));
-        } catch (e) {
-            console.error('Failed to parse projects', e);
-            this.projectsSignal.set([this.defaultProject]);
-        }
-    } else {
-        this.projectsSignal.set([this.defaultProject]);
-    }
-    
-    // Set active project to first one by default
-    if (this.projectsSignal().length > 0) {
-        this.activeProject.set(this.projectsSignal()[0]);
-    }
-  }
-
-  private saveToStorage(projects: Project[]) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
-  }
 }
+

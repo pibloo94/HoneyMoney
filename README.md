@@ -1,16 +1,74 @@
 # HoneyMoney
 
+A modern income and expense tracking application built with Angular and Node.js.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.5.
+
+## Project Structure
+
+This is a full-stack application:
+
+- **Frontend**: Angular 21 with PrimeNG and Tailwind CSS (in `/src`)
+- **Backend**: Node.js + Express + MongoDB (in `/backend`)
+
+## Setup
+
+### Backend Setup
+
+1. Navigate to the backend directory:
+
+```bash
+cd backend
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Configure environment variables:
+
+   - Copy `.env.example` to `.env`
+   - For local development, the default MongoDB URI (`mongodb://localhost:27017/honeymoney`) will work if you have MongoDB installed locally
+   - For cloud deployment, sign up for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier available) and update the `MONGODB_URI` in `.env`
+
+4. Start the backend server:
+
+```bash
+npm run dev
+```
+
+The API will run on `http://localhost:3000`
+
+### Frontend Setup
+
+1. Return to the root directory and install dependencies:
+
+```bash
+cd ..
+npm install
+```
+
+2. Start the development server:
+
+```bash
+npm start
+```
+
+The application will run on `http://localhost:4200`
 
 ## Development server
 
 To start a local development server, run:
 
 ```bash
-ng serve
+npm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+**Note**: Make sure the backend server is also running on port 3000 for the application to work properly.
 
 ## Code scaffolding
 

@@ -48,6 +48,9 @@ export class ProjectsSettingsComponent {
             const val = this.form.value;
             const members = val.membersString!.split(',').map(s => s.trim()).filter(s => s.length > 0);
             
+            // Generate a random color for the project
+            const randomColor = this.getRandomColor();
+            
             if (this.editingId) {
                 this.projectService.updateProject(this.editingId, {
                     name: val.name!,
@@ -57,11 +60,28 @@ export class ProjectsSettingsComponent {
                 this.projectService.addProject({
                     name: val.name!,
                     members: members,
-                    description: ''
+                    description: '',
+                    color: randomColor
                 });
             }
             this.displayDialog = false;
         }
+    }
+
+    private getRandomColor(): string {
+        const colors = [
+            '#3b82f6', // blue
+            '#10b981', // green
+            '#f59e0b', // amber
+            '#ef4444', // red
+            '#8b5cf6', // purple
+            '#ec4899', // pink
+            '#14b8a6', // teal
+            '#f97316', // orange
+            '#6366f1', // indigo
+            '#06b6d4'  // cyan
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
     }
 
     deleteProject(id: string) {

@@ -1,11 +1,12 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Category } from '../models/category.model';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
-  private STORAGE_KEY = 'honeymoney_categories';
+  private apiService = inject(ApiService);
 
   private defaultCategories: Category[] = [
     { id: 'cat-1', name: 'Salary', type: 'Income', icon: 'pi pi-money-bill', color: '#10b981' },
@@ -28,49 +29,74 @@ export class CategoryService {
   expenseCategories = computed(() => this.categories().filter(c => c.type === 'Expense'));
 
   constructor() {
-    this.loadFromStorage();
-    
-    effect(() => {
-        this.saveToStorage(this.categoriesSignal());
+    this.loadCategories();
+  }
+
+  private loadCategories() {
+    this.apiService.get<Category[]>('categories').subscribe({
+      next: (categories) => {
+        if (categories.length === 0) {
+          // Initialize with default categories
+          this.initializeDefaultCategories();
+        } else {
+          this.categoriesSignal.set(categories);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        this.categoriesSignal.set(this.defaultCategories);
+      }
+    });
+  }
+
+  private initializeDefaultCategories() {
+    // Create all default categories in the backend
+    this.defaultCategories.forEach(cat => {
+      this.apiService.post<Category>('categories', cat).subscribe({
+        next: (savedCat) => {
+          this.categoriesSignal.update(cats => [...cats, savedCat]);
+        },
+        error: (error) => console.error('Error initializing category:', error)
+      });
     });
   }
 
   addCategory(category: Omit<Category, 'id'>) {
     const newCategory: Category = {
-        ...category,
-        id: crypto.randomUUID()
+      ...category,
+      id: crypto.randomUUID()
     };
-    this.categoriesSignal.update(cats => [...cats, newCategory]);
+    
+    this.apiService.post<Category>('categories', newCategory).subscribe({
+      next: (savedCategory) => {
+        this.categoriesSignal.update(cats => [...cats, savedCategory]);
+      },
+      error: (error) => console.error('Error adding category:', error)
+    });
   }
 
   updateCategory(id: string, updates: Partial<Omit<Category, 'id'>>) {
-    this.categoriesSignal.update(cats => 
-        cats.map(c => c.id === id ? { ...c, ...updates } : c)
-    );
+    this.apiService.put<Category>(`categories/${id}`, updates).subscribe({
+      next: (updatedCategory) => {
+        this.categoriesSignal.update(cats => 
+          cats.map(c => c.id === id ? updatedCategory : c)
+        );
+      },
+      error: (error) => console.error('Error updating category:', error)
+    });
   }
 
   deleteCategory(id: string) {
-    this.categoriesSignal.update(cats => cats.filter(c => c.id !== id));
+    this.apiService.delete(`categories/${id}`).subscribe({
+      next: () => {
+        this.categoriesSignal.update(cats => cats.filter(c => c.id !== id));
+      },
+      error: (error) => console.error('Error deleting category:', error)
+    });
   }
 
   getCategoryById(id: string): Category | undefined {
     return this.categoriesSignal().find(c => c.id === id);
   }
-
-  private loadFromStorage() {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    if (data) {
-        try {
-            this.categoriesSignal.set(JSON.parse(data));
-        } catch (e) {
-             this.categoriesSignal.set(this.defaultCategories);
-        }
-    } else {
-        this.categoriesSignal.set(this.defaultCategories);
-    }
-  }
-
-  private saveToStorage(categories: Category[]) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(categories));
-  }
 }
+
