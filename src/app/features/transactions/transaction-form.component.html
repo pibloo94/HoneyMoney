@@ -1,0 +1,76 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6 flex items-center justify-between">
+     <h1 class="text-2xl font-bold text-slate-800">
+        {{ isIncome ? 'New Income' : 'New Expense' }}
+     </h1>
+     <button routerLink="/dashboard" class="p-button-text p-button-secondary text-sm">Cancel</button>
+  </div>
+
+  <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+        
+        <!-- Type Indicator -->
+        <div class="flex items-center gap-2 p-3 rounded-lg" [ngClass]="isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'">
+            <i class="pi" [ngClass]="isIncome ? 'pi-plus-circle' : 'pi-minus-circle'"></i>
+            <span class="font-medium">Adding to {{ isIncome ? 'Income' : 'Expenses' }}</span>
+        </div>
+
+        <!-- Description -->
+        <div class="flex flex-col gap-2">
+            <label for="desc" class="text-sm font-medium text-slate-600">Description</label>
+            <input id="desc" type="text" pInputText formControlName="description" placeholder="e.g. Weekly Groceries" class="w-full" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Project -->
+            <div class="flex flex-col gap-2">
+                <label for="project" class="text-sm font-medium text-slate-600">Project</label>
+                <p-select id="project" [options]="projects()" optionLabel="name" optionValue="id" formControlName="projectId" placeholder="Select Project" styleClass="w-full" appendTo="body"></p-select>
+            </div>
+
+            <!-- Date -->
+             <div class="flex flex-col gap-2">
+                <label for="date" class="text-sm font-medium text-slate-600">Date</label>
+                <p-datepicker id="date" formControlName="date" dateFormat="dd.mm.yy" [showIcon]="true" appendTo="body" styleClass="w-full"></p-datepicker>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Amount -->
+            <div class="flex flex-col gap-2">
+                <label for="amount" class="text-sm font-medium text-slate-600">Amount</label>
+                <p-inputNumber id="amount" formControlName="amount" mode="currency" currency="EUR" locale="de-DE" [min]="0" class="w-full" styleClass="w-full"></p-inputNumber>
+            </div>
+
+            <!-- Category -->
+            <div class="flex flex-col gap-2">
+                <label for="category" class="text-sm font-medium text-slate-600">Category</label>
+                <p-select id="category" [options]="categories()" optionLabel="name" optionValue="id" formControlName="categoryId" placeholder="Select Category" styleClass="w-full" appendTo="body">
+                    <ng-template let-cat #item>
+                        <div class="flex items-center gap-2">
+                            <i [class]="cat.icon" [style.color]="cat.color"></i>
+                            <div>{{ cat.name }}</div>
+                        </div>
+                    </ng-template>
+                    <ng-template let-cat #selectedItem>
+                        <div class="flex items-center gap-2" *ngIf="cat">
+                            <i [class]="cat.icon" [style.color]="cat.color"></i>
+                            <div>{{ cat.name }}</div>
+                        </div>
+                    </ng-template>
+                </p-select>
+            </div>
+
+            <!-- Member (Who is this for?) -->
+            <div class="flex flex-col gap-2">
+                <label for="member" class="text-sm font-medium text-slate-600">Who is this for?</label>
+                <p-select id="member" [options]="projectMembers()" optionLabel="label" optionValue="value" formControlName="member" placeholder="Select Member" styleClass="w-full" appendTo="body"></p-select>
+            </div>
+        </div>
+
+        <div class="pt-4 flex justify-end">
+            <p-button type="submit" [label]="'Save ' + (isIncome ? 'Income' : 'Expense')" [disabled]="form.invalid" [severity]="isIncome ? 'success' : 'danger'" icon="pi pi-check"></p-button>
+        </div>
+    </form>
+  </div>
+</div>

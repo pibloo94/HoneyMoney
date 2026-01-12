@@ -1,0 +1,23 @@
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-slate-800">Settings</h1>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="flex border-b border-slate-100">
+            <button (click)="activeTab = 'projects'" 
+                class="px-6 py-4 text-sm font-medium transition-colors"
+                [ngClass]="activeTab === 'projects' ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'">
+                Projects & Members
+            </button>
+            <button (click)="activeTab = 'categories'" 
+                class="px-6 py-4 text-sm font-medium transition-colors"
+                [ngClass]="activeTab === 'categories' ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'">
+                Categories
+            </button>
+        </div>
+
+        <div class="p-6">
+            <app-projects-settings *ngIf="activeTab === 'projects'"></app-projects-settings>
+            <app-categories-settings *ngIf="activeTab === 'categories'"></app-categories-settings>
+        </div>
+    </div>
+</div>
