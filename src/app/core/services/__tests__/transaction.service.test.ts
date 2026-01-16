@@ -4,6 +4,7 @@ import { TransactionService } from '../transaction.service';
 import { ApiService } from '../api.service';
 import { ProjectService } from '../project.service';
 import { CategoryService } from '../category.service';
+import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 describe('TransactionService', () => {
@@ -11,6 +12,7 @@ describe('TransactionService', () => {
   let apiServiceMock: any;
   let projectServiceMock: any;
   let categoryServiceMock: any;
+  let messageServiceMock: any;
 
   const createService = (initialTransactions: any[] = []) => {
     apiServiceMock.get.mockReturnValue(of(initialTransactions));
@@ -20,7 +22,8 @@ describe('TransactionService', () => {
         TransactionService,
         { provide: ApiService, useValue: apiServiceMock },
         { provide: ProjectService, useValue: projectServiceMock },
-        { provide: CategoryService, useValue: categoryServiceMock }
+        { provide: CategoryService, useValue: categoryServiceMock },
+        { provide: MessageService, useValue: messageServiceMock }
       ]
     });
     return TestBed.inject(TransactionService);
@@ -40,6 +43,10 @@ describe('TransactionService', () => {
 
     categoryServiceMock = {
       getCategoryById: vi.fn()
+    };
+
+    messageServiceMock = {
+      add: vi.fn()
     };
 
     service = createService([]);

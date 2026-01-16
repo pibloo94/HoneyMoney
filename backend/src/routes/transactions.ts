@@ -67,4 +67,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// POST bulk create transactions
+router.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const transactions = await Transaction.insertMany(req.body);
+    res.status(201).json(transactions);
+  } catch (error) {
+    res.status(400).json({ message: 'Error bulk creating transactions', error });
+  }
+});
+
 export default router;

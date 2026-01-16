@@ -9,6 +9,11 @@
             <!-- Project Filter -->
             <p-select [options]="projects()" optionLabel="name" optionValue="id" [(ngModel)]="selectedProjectId" placeholder="All Projects" styleClass="w-48" [showClear]="true"></p-select>
 
+            <button (click)="fileInput.click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                <i class="pi pi-upload"></i> <span class="hidden sm:inline">Import</span>
+            </button>
+            <input #fileInput type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" class="hidden">
+
             <button (click)="exportExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                 <i class="pi pi-file-excel"></i> <span class="hidden sm:inline">Excel</span>
             </button>

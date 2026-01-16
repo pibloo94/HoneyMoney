@@ -3,6 +3,7 @@ import { Transaction } from '../models/transaction.model';
 import { ProjectService } from './project.service';
 import { CategoryService } from './category.service';
 import { ApiService } from './api.service';
+import { MessageService } from 'primeng/api';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -15,6 +16,7 @@ export class TransactionService {
   private apiService = inject(ApiService);
   private projectService = inject(ProjectService);
   private categoryService = inject(CategoryService);
+  private messageService = inject(MessageService);
 
   // State
   private transactionsSignal = signal<Transaction[]>([]);
@@ -141,6 +143,101 @@ export class TransactionService {
      const EXCEL_EXTENSION = '.xlsx';
      const data: Blob = new Blob([buffer], { type: EXCEL_TYPE });
      saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION);
+  }
+
+  importFromExcel(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        if (workbook.SheetNames.length === 0) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'The Excel file is empty.' });
+          return;
+        }
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No data found in the first sheet.' });
+          return;
+        }
+
+        // Validate required columns
+        const firstRow = jsonData[0];
+        const requiredColumns = ['Description', 'Amount', 'Type'];
+        const missing = requiredColumns.filter(col => !(col in firstRow));
+
+        if (missing.length > 0) {
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Invalid Format', 
+            detail: `Missing required columns: ${missing.join(', ')}. Please use the exported Excel as a template.` 
+          });
+          return;
+        }
+
+        const projects = this.projectService.projects();
+        const categories = this.categoryService.categories();
+
+        const transactionsToImport = jsonData.map((row, index) => {
+          // Try to find project by name
+          const project = projects.find(p => p.name === row.Project);
+          const projectId = project ? project.id : (projects[0]?.id || 'default-project');
+
+          // Try to find category by name/type
+          const category = categories.find(c => c.name === row.Category && c.type === row.Type);
+          const categoryId = category ? category.id : (categories[0]?.id || 'cat-unknown');
+
+          return {
+            id: crypto.randomUUID(),
+            description: row.Description || `Imported Row ${index + 1}`,
+            amount: Number(row.Amount) || 0,
+            date: row.Date ? new Date(row.Date) : new Date(),
+            projectId: projectId,
+            categoryId: categoryId,
+            categoryName: row.Category || 'Unknown',
+            member: row.Member || row.Link || 'Unknown',
+            type: (row.Type === 'Income' || row.Type === 'Expense') ? row.Type : 'Expense'
+          };
+        });
+
+        if (transactionsToImport.length > 0) {
+          this.bulkAddTransactions(transactionsToImport);
+        }
+      } catch (err) {
+        console.error('Error parsing Excel:', err);
+        this.messageService.add({ severity: 'error', summary: 'Parse Error', detail: 'Failed to read the Excel file.' });
+      }
+    };
+    reader.onerror = () => {
+      this.messageService.add({ severity: 'error', summary: 'File Error', detail: 'Could not read the file.' });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  private bulkAddTransactions(transactions: any[]) {
+    this.apiService.post<any[]>('transactions/bulk', transactions).subscribe({
+      next: (savedTransactions) => {
+        const hydrated = savedTransactions.map(t => ({
+          ...t,
+          date: new Date(t.date)
+        }));
+        this.transactionsSignal.update(existing => [...existing, ...hydrated]);
+        this.messageService.add({ 
+          severity: 'success', 
+          summary: 'Import Successful', 
+          detail: `Imported ${savedTransactions.length} transactions.` 
+        });
+      },
+      error: (error) => {
+        console.error('Error bulk adding transactions:', error);
+        this.messageService.add({ severity: 'error', summary: 'Import Failed', detail: 'Server error during bulk import.' });
+      }
+    });
   }
 
   exportToPdf() {

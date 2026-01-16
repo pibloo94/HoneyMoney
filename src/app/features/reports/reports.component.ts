@@ -84,6 +84,15 @@ export class ReportsComponent {
     plugins: { legend: { position: 'bottom' } }
   };
 
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.service.importFromExcel(file);
+      // Reset input
+      event.target.value = '';
+    }
+  }
+
   exportExcel() {
     this.service.exportToExcel();
   }
