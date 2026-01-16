@@ -1,0 +1,24 @@
+# Run tests for all projects before commit
+echo "🔍 Running pre-commit tests..."
+
+# Run backend tests
+echo "📦 Testing Backend..."
+cd backend && npm run test:run
+BACKEND_STATUS=$?
+
+# Return to root
+cd ..
+
+# Run frontend tests
+echo "🎨 Testing Frontend..."
+npm run test:run
+FRONTEND_STATUS=$?
+
+# Check results
+if [ $BACKEND_STATUS -ne 0 ] || [ $FRONTEND_STATUS -ne 0 ]; then
+  echo "❌ Tests failed! Fix the errors before committing."
+  exit 1
+fi
+
+echo "✅ All tests passed! Proceeding with commit..."
+exit 0

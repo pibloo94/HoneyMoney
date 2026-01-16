@@ -6,6 +6,8 @@ export interface ICategory extends Document {
   type: 'Income' | 'Expense';
   icon: string;
   color: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const CategorySchema = new Schema<ICategory>({
