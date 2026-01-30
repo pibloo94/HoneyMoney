@@ -55,6 +55,14 @@ The server will start on `http://localhost:3000`
 
 ## API Endpoints
 
+### Features
+
+- **Express & Node.js**: Robust and fast runtime.
+- **MongoDB & Mongoose**: Flexible document-oriented database with schema validation.
+- **Project-based Tracking**: All data is organized into projects.
+- **Custom Middleware**: Centralized error handling and request logging.
+- **Testing Suite**: Comprehensive integration tests with Vitest and Supertest.
+
 ### Projects
 
 - `GET /api/projects` - Get all projects
