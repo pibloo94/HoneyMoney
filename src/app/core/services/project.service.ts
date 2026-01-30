@@ -1,18 +1,20 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Project } from '../models/project.model';
 import { ApiService } from './api.service';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
   private apiService = inject(ApiService);
+  private messageService = inject(MessageService);
   
   // Initialize with a default project if empty
   private defaultProject: Project = {
     id: 'default-project',
     name: 'General',
-    members: ['Pablo', 'Partner'], // Default members
+    members: ['Pablo', 'Partner', 'Joint'], // Default members
     description: 'General family expenses',
     color: '#3b82f6'
   };
@@ -41,6 +43,7 @@ export class ProjectService {
       },
       error: (error) => {
         console.error('Error loading projects:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load projects.' });
         // Fallback to default project on error
         this.projectsSignal.set([this.defaultProject]);
         this.activeProject.set(this.defaultProject);
@@ -58,7 +61,10 @@ export class ProjectService {
       next: (savedProject) => {
         this.projectsSignal.update(projects => [...projects, savedProject]);
       },
-      error: (error) => console.error('Error adding project:', error)
+      error: (error) => {
+        console.error('Error adding project:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add project.' });
+      }
     });
   }
 
@@ -69,7 +75,10 @@ export class ProjectService {
           projects.map(p => p.id === id ? updatedProject : p)
         );
       },
-      error: (error) => console.error('Error updating project:', error)
+      error: (error) => {
+        console.error('Error updating project:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update project.' });
+      }
     });
   }
 
@@ -80,7 +89,10 @@ export class ProjectService {
       next: () => {
         this.projectsSignal.update(projects => projects.filter(p => p.id !== id));
       },
-      error: (error) => console.error('Error deleting project:', error)
+      error: (error) => {
+        console.error('Error deleting project:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete project.' });
+      }
     });
   }
 

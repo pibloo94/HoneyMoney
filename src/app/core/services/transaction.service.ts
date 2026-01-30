@@ -34,18 +34,21 @@ export class TransactionService {
     this.loadTransactions();
   }
 
+  private hydrateDate(t: any): Transaction {
+    return {
+      ...t,
+      date: new Date(t.date)
+    };
+  }
+
   private loadTransactions() {
     this.apiService.get<any[]>('transactions').subscribe({
       next: (transactions) => {
-        // Hydrate dates from JSON
-        const hydratedTransactions = transactions.map(t => ({
-          ...t,
-          date: new Date(t.date)
-        }));
-        this.transactionsSignal.set(hydratedTransactions);
+        this.transactionsSignal.set(transactions.map(t => this.hydrateDate(t)));
       },
       error: (error) => {
         console.error('Error loading transactions:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load transactions.' });
         this.transactionsSignal.set([]);
       }
     });
@@ -62,11 +65,12 @@ export class TransactionService {
     
     this.apiService.post<Transaction>('transactions', newTransaction).subscribe({
       next: (savedTransaction) => {
-        // Hydrate date
-        const hydrated = { ...savedTransaction, date: new Date(savedTransaction.date) };
-        this.transactionsSignal.update(transactions => [...transactions, hydrated]);
+        this.transactionsSignal.update(transactions => [...transactions, this.hydrateDate(savedTransaction)]);
       },
-      error: (error) => console.error('Error adding transaction:', error)
+      error: (error) => {
+        console.error('Error adding transaction:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add transaction.' });
+      }
     });
   }
 
@@ -79,12 +83,15 @@ export class TransactionService {
     
     this.apiService.put<Transaction>(`transactions/${id}`, updateData).subscribe({
       next: (updatedTransaction) => {
-        const hydrated = { ...updatedTransaction, date: new Date(updatedTransaction.date) };
+        const hydrated = this.hydrateDate(updatedTransaction);
         this.transactionsSignal.update(transactions => 
           transactions.map(t => t.id === id ? hydrated : t)
         );
       },
-      error: (error) => console.error('Error updating transaction:', error)
+      error: (error) => {
+        console.error('Error updating transaction:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update transaction.' });
+      }
     });
   }
 
@@ -97,7 +104,10 @@ export class TransactionService {
       next: () => {
         this.transactionsSignal.update(transactions => transactions.filter(t => t.id !== id));
       },
-      error: (error) => console.error('Error deleting transaction:', error)
+      error: (error) => {
+        console.error('Error deleting transaction:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete transaction.' });
+      }
     });
   }
 
@@ -222,10 +232,7 @@ export class TransactionService {
   private bulkAddTransactions(transactions: any[]) {
     this.apiService.post<any[]>('transactions/bulk', transactions).subscribe({
       next: (savedTransactions) => {
-        const hydrated = savedTransactions.map(t => ({
-          ...t,
-          date: new Date(t.date)
-        }));
+        const hydrated = savedTransactions.map(t => this.hydrateDate(t));
         this.transactionsSignal.update(existing => [...existing, ...hydrated]);
         this.messageService.add({ 
           severity: 'success', 

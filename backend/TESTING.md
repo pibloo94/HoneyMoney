@@ -51,3 +51,4 @@ const mockCategory = createTestData.category({ name: 'Special Category' });
 
 - **Async Errors**: Ensure all database operations are awaited.
 - **Database Cleanup**: The `test-setup.ts` automatically clears all collections after each test to prevent side effects.
+- **'vitest' Command Not Found**: Run tests using `npm test` or `npx vitest` instead of calling `vitest` directly.

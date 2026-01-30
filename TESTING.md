@@ -2,6 +2,9 @@
 
 Welcome to the HoneyMoney testing documentation. This project uses **Vitest** for both the backend and frontend to ensure high performance and a consistent testing experience.
 
+> [!IMPORTANT]
+> Always run tests using **NPM scripts** (e.g., `npm test`) or by prefixing the command with **npx** (e.g., `npx vitest`). Running `vitest` directly may fail if it's not installed globally on your system.
+
 ## Quick Start
 
 ### Backend Tests
@@ -54,3 +57,22 @@ We follow a balanced testing strategy:
 
 - [Backend Testing Details](./backend/TESTING.md)
 - [Testing Examples & Patterns](./docs/testing-examples.md)
+
+## Common Issues
+
+### 'vitest' is not recognized
+
+If you see an error like `El término 'vitest' no se reconoce...`, it means you are trying to run the Vite CLI directly without having it in your system's PATH.
+
+**Solution:**
+Use the scripts defined in `package.json`:
+
+```bash
+npm test
+```
+
+Or use `npx`:
+
+```bash
+npx vitest
+```

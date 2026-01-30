@@ -1,12 +1,14 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Category } from '../models/category.model';
 import { ApiService } from './api.service';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoryService {
   private apiService = inject(ApiService);
+  private messageService = inject(MessageService);
 
   private defaultCategories: Category[] = [
     { id: 'cat-1', name: 'Salary', type: 'Income', icon: 'pi pi-money-bill', color: '#10b981' },
@@ -44,6 +46,7 @@ export class CategoryService {
       },
       error: (error) => {
         console.error('Error loading categories:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load categories.' });
         this.categoriesSignal.set(this.defaultCategories);
       }
     });
@@ -56,7 +59,10 @@ export class CategoryService {
         next: (savedCat) => {
           this.categoriesSignal.update(cats => [...cats, savedCat]);
         },
-        error: (error) => console.error('Error initializing category:', error)
+        error: (error) => {
+          console.error('Error initializing category:', error);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: `Failed to initialize category: ${cat.name}` });
+        }
       });
     });
   }
@@ -71,7 +77,10 @@ export class CategoryService {
       next: (savedCategory) => {
         this.categoriesSignal.update(cats => [...cats, savedCategory]);
       },
-      error: (error) => console.error('Error adding category:', error)
+      error: (error) => {
+        console.error('Error adding category:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to add category.' });
+      }
     });
   }
 
@@ -82,7 +91,10 @@ export class CategoryService {
           cats.map(c => c.id === id ? updatedCategory : c)
         );
       },
-      error: (error) => console.error('Error updating category:', error)
+      error: (error) => {
+        console.error('Error updating category:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update category.' });
+      }
     });
   }
 
@@ -91,7 +103,10 @@ export class CategoryService {
       next: () => {
         this.categoriesSignal.update(cats => cats.filter(c => c.id !== id));
       },
-      error: (error) => console.error('Error deleting category:', error)
+      error: (error) => {
+        console.error('Error deleting category:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete category.' });
+      }
     });
   }
 

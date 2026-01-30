@@ -14,11 +14,3 @@ export interface Transaction {
     type: TransactionType;
 }
 
-// Deprecated constants - keeping for migration reference if needed, but should eventually be removed
-// export const CATEGORIES = ...
-// export const OWNERS = ...
-
-export const CATEGORIES = [
-    'Salary', 'Rent', 'Groceries', 'Utilities', 'Entertainment', 
-    'Savings', 'Investment', 'Dining', 'Transport', 'Other'
-];

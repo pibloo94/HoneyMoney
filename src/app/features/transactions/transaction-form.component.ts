@@ -12,14 +12,13 @@ import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
-import { FloatLabel } from 'primeng/floatlabel';
 
 @Component({
   selector: 'app-transaction-form',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
-    DatePicker, Select, InputNumber, InputText, Button, FloatLabel
+    DatePicker, Select, InputNumber, InputText, Button
   ],
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.css'

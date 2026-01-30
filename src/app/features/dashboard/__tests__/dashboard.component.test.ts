@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DashboardComponent } from '../dashboard.component';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { ProjectService } from '../../../core/services/project.service';
 import { TestBed } from '@angular/core/testing';
 import { signal, computed } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -8,6 +9,7 @@ import { provideRouter } from '@angular/router';
 describe('DashboardComponent (Logic Tests)', () => {
   let component: DashboardComponent;
   let transactionServiceMock: any;
+  let projectServiceMock: any;
 
   beforeEach(() => {
     transactionServiceMock = {
@@ -18,14 +20,23 @@ describe('DashboardComponent (Logic Tests)', () => {
       removeTransaction: vi.fn()
     };
 
+    projectServiceMock = {
+      activeProject: signal({
+        id: '1',
+        name: 'Test Project',
+        members: ['Pablo', 'Partner'],
+        color: '#000'
+      })
+    };
+
     TestBed.configureTestingModule({
       providers: [
         { provide: TransactionService, useValue: transactionServiceMock },
+        { provide: ProjectService, useValue: projectServiceMock },
         provideRouter([])
       ]
     });
 
-    // Run in injection context to allow inject() to work
     component = TestBed.runInInjectionContext(() => new DashboardComponent());
   });
 
@@ -33,8 +44,11 @@ describe('DashboardComponent (Logic Tests)', () => {
     expect(component.totalBalance()).toBe(1000);
   });
 
-  it('should initialize member balances', () => {
-    expect(component.pabloBalance()).toBe(500);
+  it('should initialize member balances dynamically', () => {
+    const balances = component.memberBalances();
+    expect(balances.length).toBe(2);
+    expect(balances[0].name).toBe('Pablo');
+    expect(balances[1].name).toBe('Partner');
   });
 
   it('should call removeTransaction when confirmed', () => {
