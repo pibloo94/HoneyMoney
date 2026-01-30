@@ -4,6 +4,15 @@ A modern income and expense tracking application built with Angular and Node.js.
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.5.
 
+## Features
+
+- 🔐 **JWT Authentication** - Secure user authentication with JWT tokens
+- 📊 **Project-based Tracking** - Organize transactions by projects
+- 💰 **Income & Expense Management** - Track all your financial transactions
+- 📈 **Reports & Analytics** - Visualize your financial data
+- 👥 **Multi-member Support** - Track expenses for couples or families
+- 🎨 **Modern UI** - Beautiful interface with PrimeNG and Tailwind CSS
+
 ## Project Structure
 
 This is a full-stack application:
@@ -11,7 +20,12 @@ This is a full-stack application:
 - **Frontend**: Angular 21 with PrimeNG and Tailwind CSS (in `/src`)
 - **Backend**: Node.js + Express + MongoDB (in `/backend`)
 
-## Setup
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB Atlas account (or local MongoDB)
 
 ### Backend Setup
 
@@ -28,10 +42,9 @@ npm install
 ```
 
 3. Configure environment variables:
-
    - Copy `.env.example` to `.env`
-   - For local development, the default MongoDB URI (`mongodb://localhost:27017/honeymoney`) will work if you have MongoDB installed locally
-   - For cloud deployment, sign up for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier available) and update the `MONGODB_URI` in `.env`
+   - Update `MONGODB_URI` with your MongoDB connection string
+   - Set a secure `JWT_SECRET` (minimum 32 characters)
 
 4. Start the backend server:
 
@@ -58,60 +71,83 @@ npm start
 
 The application will run on `http://localhost:4200`
 
-## Development server
+### Default Admin User
 
-To start a local development server, run:
+An admin user is created automatically on first run:
 
-```bash
-npm start
-```
+- **Email**: `admin@honeymoney.com`
+- **Password**: `admin123`
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+> ⚠️ **Important**: Change the admin password after first login!
 
-**Note**: Make sure the backend server is also running on port 3000 for the application to work properly.
+## Documentation
 
-## Code scaffolding
+- 📖 [Authentication Guide](docs/AUTHENTICATION.md) - Complete authentication documentation
+- 🔌 [API Reference](docs/API.md) - Full API endpoint documentation
+- 🚀 [Deployment Guide](docs/DEPLOYMENT.md) - Deploy to production
+- 🏗️ [Architecture Overview](docs/ARCHITECTURE.md) - System architecture and design patterns
+- 🧪 [Testing Guide](TESTING.md) - How to run and write tests
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Development
 
-```bash
-ng generate component component-name
-```
+### Running Tests
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+**Frontend**:
 
 ```bash
-ng build
+npm test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+**Backend**:
 
 ```bash
-ng test
+cd backend && npm test
 ```
 
-## Running end-to-end tests
+### Building for Production
 
-For end-to-end (e2e) testing, run:
+**Frontend**:
 
 ```bash
-ng e2e
+npm run build
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+**Backend**:
+
+```bash
+cd backend && npm run build
+```
+
+## Technology Stack
+
+### Frontend
+
+- Angular 21
+- PrimeNG (UI Components)
+- Tailwind CSS
+- TypeScript
+- Vitest (Testing)
+
+### Backend
+
+- Node.js + Express
+- MongoDB + Mongoose
+- JWT Authentication
+- bcrypt (Password Hashing)
+- Vitest + Supertest (Testing)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
 
 ## Additional Resources
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+For more information on using the Angular CLI, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
