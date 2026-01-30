@@ -43,11 +43,20 @@
 
     <div class="p-4 border-t border-slate-100">
         <div class="flex items-center gap-3 p-2">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs">P</div>
-            <div class="text-sm">
-                <p class="font-medium text-slate-700">Pablo & Partner</p>
-                <p class="text-xs text-slate-400">Family Account</p>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
+              {{ (authService.currentUser()?.name || 'U')[0].toUpperCase() }}
             </div>
+            <div class="flex-1 text-sm">
+                <p class="font-medium text-slate-700">{{ authService.currentUser()?.name || 'Usuario' }}</p>
+                <p class="text-xs text-slate-400">{{ authService.currentUser()?.email || '' }}</p>
+            </div>
+            <button 
+              (click)="logout()" 
+              class="text-slate-400 hover:text-rose-600 transition-colors"
+              title="Cerrar sesión"
+            >
+              <i class="pi pi-sign-out"></i>
+            </button>
         </div>
     </div>
   </aside>
