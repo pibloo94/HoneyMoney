@@ -192,35 +192,120 @@ export class TransactionService {
 
         const projects = this.projectService.projects();
         const categories = this.categoryService.categories();
+        const errors: string[] = [];
+        const validTransactions: any[] = [];
 
-        const transactionsToImport = jsonData.map((row, index) => {
-          // Try to find project by name
-          const project = projects.find(p => p.name === row.Project);
-          const projectId = project ? project.id : (projects[0]?.id || 'default-project');
+        jsonData.forEach((row, index) => {
+          const rowNum = index + 2; // +2 because Excel is 1-indexed and has header row
+          const rowErrors: string[] = [];
 
-          // Try to find category by name/type
-          const category = categories.find(c => c.name === row.Category && c.type === row.Type);
-          const categoryId = category ? category.id : (categories[0]?.id || 'cat-unknown');
+          // Validate Description
+          if (!row.Description || typeof row.Description !== 'string' || row.Description.trim() === '') {
+            rowErrors.push(`Description is required`);
+          }
 
-          return {
-            id: crypto.randomUUID(),
-            description: row.Description || `Imported Row ${index + 1}`,
-            amount: Number(row.Amount) || 0,
-            date: row.Date ? new Date(row.Date) : new Date(),
-            projectId: projectId,
-            categoryId: categoryId,
-            categoryName: row.Category || 'Unknown',
-            member: row.Member || row.Link || 'Unknown',
-            type: (row.Type === 'Income' || row.Type === 'Expense') ? row.Type : 'Expense'
-          };
+          // Validate Amount
+          const amount = Number(row.Amount);
+          if (isNaN(amount) || amount === 0) {
+            rowErrors.push(`Amount must be a valid non-zero number`);
+          }
+
+          // Validate Type
+          if (row.Type !== 'Income' && row.Type !== 'Expense') {
+            rowErrors.push(`Type must be either 'Income' or 'Expense'`);
+          }
+
+          // Validate Date (if provided)
+          let parsedDate = new Date();
+          if (row.Date) {
+            parsedDate = new Date(row.Date);
+            if (isNaN(parsedDate.getTime())) {
+              rowErrors.push(`Date is invalid`);
+              parsedDate = new Date(); // Fallback to today
+            }
+          }
+
+          // Validate Project (if provided)
+          let projectId = projects[0]?.id || 'default-project';
+          if (row.Project) {
+            const project = projects.find(p => p.name === row.Project);
+            if (!project) {
+              rowErrors.push(`Project '${row.Project}' not found`);
+            } else {
+              projectId = project.id;
+            }
+          }
+
+          // Validate Category (if provided)
+          let categoryId = categories[0]?.id || 'cat-unknown';
+          let categoryName = 'Unknown';
+          if (row.Category) {
+            const category = categories.find(c => c.name === row.Category && c.type === row.Type);
+            if (!category) {
+              rowErrors.push(`Category '${row.Category}' not found for type '${row.Type}'`);
+            } else {
+              categoryId = category.id;
+              categoryName = category.name;
+            }
+          }
+
+          // Validate Member (if provided)
+          let member = 'Unknown';
+          if (row.Member || row.Link) {
+            member = row.Member || row.Link;
+            if (typeof member !== 'string' || member.trim() === '') {
+              rowErrors.push(`Member/Link is invalid`);
+              member = 'Unknown';
+            }
+          }
+
+          if (rowErrors.length > 0) {
+            errors.push(`Row ${rowNum}: ${rowErrors.join(', ')}`);
+          } else {
+            validTransactions.push({
+              id: crypto.randomUUID(),
+              description: row.Description.trim(),
+              amount: Math.abs(amount),
+              date: parsedDate,
+              projectId: projectId,
+              categoryId: categoryId,
+              categoryName: categoryName,
+              member: member,
+              type: row.Type
+            });
+          }
         });
 
-        if (transactionsToImport.length > 0) {
-          this.bulkAddTransactions(transactionsToImport);
+        // Show validation results
+        if (errors.length > 0) {
+          const errorMessage = errors.slice(0, 5).join('\n') + 
+            (errors.length > 5 ? `\n... and ${errors.length - 5} more errors` : '');
+          
+          this.messageService.add({ 
+            severity: 'warn', 
+            summary: `Import Issues (${errors.length} rows)`, 
+            detail: errorMessage,
+            life: 10000
+          });
+        }
+
+        if (validTransactions.length > 0) {
+          this.bulkAddTransactions(validTransactions);
+          this.messageService.add({ 
+            severity: 'success', 
+            summary: 'Import Successful', 
+            detail: `${validTransactions.length} transactions imported successfully.${errors.length > 0 ? ` ${errors.length} rows skipped due to errors.` : ''}` 
+          });
+        } else if (errors.length > 0) {
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Import Failed', 
+            detail: 'No valid transactions found. Please fix the errors and try again.' 
+          });
         }
       } catch (err) {
         console.error('Error parsing Excel:', err);
-        this.messageService.add({ severity: 'error', summary: 'Parse Error', detail: 'Failed to read the Excel file.' });
+        this.messageService.add({ severity: 'error', summary: 'Parse Error', detail: 'Failed to read the Excel file. Please ensure it is a valid Excel file.' });
       }
     };
     reader.onerror = () => {
