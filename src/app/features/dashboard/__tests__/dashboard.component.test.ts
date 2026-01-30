@@ -5,6 +5,8 @@ import { ProjectService } from '../../../core/services/project.service';
 import { TestBed } from '@angular/core/testing';
 import { signal, computed } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmationService } from 'primeng/api';
 
 describe('DashboardComponent (Logic Tests)', () => {
   let component: DashboardComponent;
@@ -29,10 +31,29 @@ describe('DashboardComponent (Logic Tests)', () => {
       })
     };
 
+    const dialogServiceMock = {
+      open: vi.fn(() => ({
+        onClose: {
+          subscribe: vi.fn()
+        }
+      }))
+    };
+
+    const confirmationServiceMock = {
+      confirm: vi.fn((config: any) => {
+        // Simulate immediate acceptance for testing
+        if (config.accept) {
+          config.accept();
+        }
+      })
+    };
+
     TestBed.configureTestingModule({
       providers: [
         { provide: TransactionService, useValue: transactionServiceMock },
         { provide: ProjectService, useValue: projectServiceMock },
+        { provide: DialogService, useValue: dialogServiceMock },
+        { provide: ConfirmationService, useValue: confirmationServiceMock },
         provideRouter([])
       ]
     });
@@ -52,7 +73,6 @@ describe('DashboardComponent (Logic Tests)', () => {
   });
 
   it('should call removeTransaction when confirmed', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     component.deleteTransaction('123');
     expect(transactionServiceMock.removeTransaction).toHaveBeenCalledWith('123');
   });

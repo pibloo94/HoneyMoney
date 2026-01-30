@@ -8,11 +8,12 @@ import { MessageService } from 'primeng/api';
 import { InputText } from 'primeng/inputtext';
 import { ButtonDirective } from 'primeng/button';
 import { Password } from 'primeng/password';
+import { Toast } from 'primeng/toast';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, InputText, ButtonDirective, Password],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, InputText, ButtonDirective, Password, Toast],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4">
       <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -61,6 +62,7 @@ import { Password } from 'primeng/password';
           </div>
         </form>
       </div>
+      <p-toast />
     </div>
   `,
   styles: []

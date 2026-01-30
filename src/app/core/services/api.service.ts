@@ -30,6 +30,12 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
+  // Generic PATCH request
+  patch<T>(endpoint: string, data: any): Observable<T> {
+    return this.http.patch<T>(`${this.apiUrl}/${endpoint}`, data)
+      .pipe(catchError(this.handleError));
+  }
+
   // Generic DELETE request
   delete<T>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}/${endpoint}`)

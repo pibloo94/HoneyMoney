@@ -4,6 +4,7 @@ import { ProjectService } from './project.service';
 import { CategoryService } from './category.service';
 import { ApiService } from './api.service';
 import { MessageService } from 'primeng/api';
+import { tap, catchError } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -330,6 +331,28 @@ export class TransactionService {
         this.messageService.add({ severity: 'error', summary: 'Import Failed', detail: 'Server error during bulk import.' });
       }
     });
+  }
+
+  bulkUpdateTransactions(ids: string[], updates: Partial<Transaction>) {
+    return this.apiService.patch<{ updated: number; matched: number; transactions: any[] }>('transactions/bulk', { ids, updates }).pipe(
+      tap((response) => {
+        // Update local state
+        const updatedMap = new Map(response.transactions.map(t => [t.id, this.hydrateDate(t)]));
+        this.transactionsSignal.update(current =>
+          current.map(t => updatedMap.has(t.id) ? updatedMap.get(t.id)! : t)
+        );
+        this.messageService.add({ 
+          severity: 'success', 
+          summary: 'Bulk Update Successful', 
+          detail: `${response.updated} transaction${response.updated !== 1 ? 's' : ''} updated successfully` 
+        });
+      }),
+      catchError((error) => {
+        console.error('Error bulk updating transactions:', error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update transactions' });
+        throw error;
+      })
+    );
   }
 
   exportToPdf() {
